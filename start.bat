@@ -18,3 +18,4 @@ echo Opening browser...
 start http://localhost:3001
 
 echo Done! App running at http://localhost:3001 (or 3002 if 3001 is in use)
+echo Backend running at http://localhost:8003
