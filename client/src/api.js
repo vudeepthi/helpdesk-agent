@@ -25,4 +25,8 @@ export const api = {
   sendMessage(id, content) {
     return client.post(`/tickets/${id}/messages`, { content })
   },
+
+  getKnowledgeArticles(category) {
+    return client.get('/knowledge', { params: { category } })
+  },
 }

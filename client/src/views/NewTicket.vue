@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api'
 
@@ -20,6 +20,21 @@ const errors = reactive({
 const submitting = ref(false)
 const submitError = ref(null)
 
+const knowledgeArticles = ref([])
+const loadingArticles = ref(false)
+
+watch(() => form.category, async (cat) => {
+  loadingArticles.value = true
+  try {
+    const res = await api.getKnowledgeArticles(cat)
+    knowledgeArticles.value = res.data
+  } catch {
+    knowledgeArticles.value = []
+  } finally {
+    loadingArticles.value = false
+  }
+}, { immediate: true })
+
 const categories = ['Network', 'Software', 'Hardware', 'Security', 'Access', 'Other']
 const priorities = ['Low', 'Medium', 'High', 'Critical']
 
@@ -35,9 +50,6 @@ function validate() {
 
   if (!form.description.trim()) {
     errors.description = 'Description is required.'
-    valid = false
-  } else if (form.description.trim().length < 20) {
-    errors.description = 'Description must be at least 20 characters.'
     valid = false
   }
 
@@ -102,7 +114,7 @@ async function submit() {
             v-model="form.description"
             class="input textarea"
             :class="{ 'input-error': errors.description }"
-            placeholder="Describe the issue in detail (minimum 20 characters)"
+            placeholder="Describe the issue in detail"
             rows="5"
           ></textarea>
           <div class="field-hint-row">
@@ -125,6 +137,23 @@ async function submit() {
               <option v-for="pri in priorities" :key="pri" :value="pri">{{ pri }}</option>
             </select>
           </div>
+        </div>
+
+        <div class="knowledge-section">
+          <div class="knowledge-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Suggested Knowledge Articles
+          </div>
+          <div v-if="loadingArticles" class="knowledge-loading">Loading articles...</div>
+          <ul v-else class="knowledge-list">
+            <li v-for="article in knowledgeArticles" :key="article.id" class="knowledge-item">
+              <span class="article-id">{{ article.id }}</span>
+              <div class="article-body">
+                <strong class="article-title">{{ article.title }}</strong>
+                <p class="article-summary">{{ article.summary }}</p>
+              </div>
+            </li>
+          </ul>
         </div>
 
         <div v-if="submitError" class="submit-error">{{ submitError }}</div>
@@ -335,5 +364,78 @@ async function submit() {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.knowledge-section {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.knowledge-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.knowledge-loading {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.knowledge-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.knowledge-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e0f2fe;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+}
+
+.article-id {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  white-space: nowrap;
+  margin-top: 0.1rem;
+}
+
+.article-body {
+  flex: 1;
+}
+
+.article-title {
+  font-size: 0.875rem;
+  color: #0f172a;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.article-summary {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
 }
 </style>

@@ -59,6 +59,49 @@ class SendMessageBody(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Knowledge Articles
+# ---------------------------------------------------------------------------
+
+KNOWLEDGE_ARTICLES = {
+    "Network": [
+        {"id": "KB-N001", "title": "How to reset your network adapter", "summary": "Step-by-step guide to reset your network adapter on Windows and Mac to resolve connectivity issues."},
+        {"id": "KB-N002", "title": "VPN connection troubleshooting", "summary": "Common VPN errors and how to fix them, including authentication failures and timeout issues."},
+        {"id": "KB-N003", "title": "WiFi not connecting — quick fixes", "summary": "Checklist of steps to resolve WiFi connectivity issues including DNS flush and IP renewal."},
+        {"id": "KB-N004", "title": "How to check network speed and latency", "summary": "Tools and steps to diagnose slow network performance and identify bottlenecks."},
+    ],
+    "Software": [
+        {"id": "KB-S001", "title": "Clearing application cache on Windows", "summary": "How to clear cache for common business applications to resolve crashes and slow performance."},
+        {"id": "KB-S002", "title": "Software installation fails — common causes", "summary": "Troubleshoot failed software installations including permission errors and missing dependencies."},
+        {"id": "KB-S003", "title": "Microsoft Office not responding", "summary": "Steps to fix Office apps freezing or crashing, including repair tool usage and safe mode startup."},
+        {"id": "KB-S004", "title": "How to roll back a recent software update", "summary": "Instructions for reverting to a previous version if a new update caused issues."},
+    ],
+    "Hardware": [
+        {"id": "KB-H001", "title": "Monitor not displaying — troubleshooting guide", "summary": "Diagnose and fix issues with monitors not turning on, showing no signal, or flickering."},
+        {"id": "KB-H002", "title": "Laptop keyboard keys not working", "summary": "Common fixes for unresponsive or stuck keyboard keys including driver reinstall steps."},
+        {"id": "KB-H003", "title": "Computer running slow — hardware checks", "summary": "How to check RAM, CPU, and storage health to identify hardware-related performance issues."},
+        {"id": "KB-H004", "title": "Printer not detected by computer", "summary": "Steps to troubleshoot printers that aren't recognized, including driver and port checks."},
+    ],
+    "Security": [
+        {"id": "KB-SEC001", "title": "What to do if you clicked a phishing link", "summary": "Immediate steps to take after clicking a suspicious link, including password resets and IT notification."},
+        {"id": "KB-SEC002", "title": "How to report a suspicious email", "summary": "Step-by-step guide to reporting phishing and spam emails to the security team."},
+        {"id": "KB-SEC003", "title": "Setting up multi-factor authentication (MFA)", "summary": "How to enable and configure MFA for company accounts to improve account security."},
+        {"id": "KB-SEC004", "title": "Malware detected on your device — next steps", "summary": "What to do when your antivirus detects malware, including isolation and remediation steps."},
+    ],
+    "Access": [
+        {"id": "KB-A001", "title": "How to request access to a shared drive", "summary": "The process for requesting read or write access to shared network drives and folders."},
+        {"id": "KB-A002", "title": "Resetting your Active Directory password", "summary": "Self-service and IT-assisted options for resetting your Windows domain password."},
+        {"id": "KB-A003", "title": "Account locked out — how to unlock", "summary": "Steps to unlock your account after too many failed login attempts."},
+        {"id": "KB-A004", "title": "Requesting new software license or tool access", "summary": "How to submit a request for access to licensed software or internal tools."},
+    ],
+    "Other": [
+        {"id": "KB-O001", "title": "How to submit an IT support request", "summary": "Overview of the IT helpdesk ticketing process and what information to include in your request."},
+        {"id": "KB-O002", "title": "IT equipment request process", "summary": "How to request new hardware such as laptops, monitors, keyboards, and peripherals."},
+        {"id": "KB-O003", "title": "Remote work setup checklist", "summary": "Everything you need to set up a secure and productive remote working environment."},
+        {"id": "KB-O004", "title": "How to escalate an urgent IT issue", "summary": "When and how to escalate a support ticket for faster resolution of critical issues."},
+    ],
+}
+
+# ---------------------------------------------------------------------------
 # Team / agent assignment
 # ---------------------------------------------------------------------------
 
@@ -231,6 +274,17 @@ def send_message(ticket_id: str, body: SendMessageBody):
 # Entry point
 # ---------------------------------------------------------------------------
 
+@app.get("/api/knowledge")
+def get_knowledge_articles(category: Optional[str] = None):
+    """Get knowledge articles, optionally filtered by category"""
+    if category and category in KNOWLEDGE_ARTICLES:
+        return KNOWLEDGE_ARTICLES[category]
+    # Return all articles if no category specified
+    all_articles = []
+    for articles in KNOWLEDGE_ARTICLES.values():
+        all_articles.extend(articles)
+    return all_articles
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8002)
