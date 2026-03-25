@@ -4,6 +4,7 @@ import App from './App.vue'
 import TicketList from './views/TicketList.vue'
 import NewTicket from './views/NewTicket.vue'
 import TicketDetail from './views/TicketDetail.vue'
+import ArticleDetail from './views/ArticleDetail.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -11,6 +12,7 @@ const router = createRouter({
     { path: '/', component: TicketList },
     { path: '/tickets/new', component: NewTicket },
     { path: '/tickets/:id', component: TicketDetail },
+    { path: '/knowledge/:id', component: ArticleDetail },
   ],
 })
 
