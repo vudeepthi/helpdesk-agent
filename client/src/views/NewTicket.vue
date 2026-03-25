@@ -23,17 +23,43 @@ const submitError = ref(null)
 const knowledgeArticles = ref([])
 const loadingArticles = ref(false)
 
-watch(() => form.category, async (cat) => {
+// Debounce timer ref (internal only)
+const debounceTimer = ref(null)
+
+// Helper to fetch articles
+async function fetchArticles(params) {
   loadingArticles.value = true
   try {
-    const res = await api.getKnowledgeArticles(cat)
+    const res = await api.getKnowledgeArticles(params)
     knowledgeArticles.value = res.data
   } catch {
     knowledgeArticles.value = []
   } finally {
     loadingArticles.value = false
   }
-}, { immediate: true })
+}
+
+// Watch title — debounced keyword search
+watch(() => form.title, (title) => {
+  clearTimeout(debounceTimer.value)
+  if (title.trim().length >= 3) {
+    debounceTimer.value = setTimeout(() => {
+      fetchArticles({ q: title.trim() })
+    }, 400)
+  } else {
+    fetchArticles({ category: form.category })
+  }
+})
+
+// Watch category — refresh when title is short
+watch(() => form.category, (cat) => {
+  if (form.title.trim().length < 3) {
+    fetchArticles({ category: cat })
+  }
+})
+
+// Initial load on mount
+fetchArticles({ category: form.category })
 
 const categories = ['Network', 'Software', 'Hardware', 'Security', 'Access', 'Other']
 const priorities = ['Low', 'Medium', 'High', 'Critical']
@@ -142,7 +168,7 @@ async function submit() {
         <div class="knowledge-section">
           <div class="knowledge-header">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Suggested Knowledge Articles
+            {{ form.title.trim().length >= 3 ? `Results for "${form.title.trim()}"` : `Suggested for ${form.category}` }}
           </div>
           <div v-if="loadingArticles" class="knowledge-loading">Loading articles...</div>
           <ul v-else class="knowledge-list">

@@ -275,15 +275,29 @@ def send_message(ticket_id: str, body: SendMessageBody):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/knowledge")
-def get_knowledge_articles(category: Optional[str] = None):
-    """Get knowledge articles, optionally filtered by category"""
-    if category and category in KNOWLEDGE_ARTICLES:
+def get_knowledge_articles(category: Optional[str] = None, q: Optional[str] = None):
+    """Get knowledge articles. If q is provided, search by keywords across all articles.
+    Otherwise filter by category."""
+    # Gather candidate articles
+    if q:
+        # Keyword search: search across all articles regardless of category
+        all_articles = [a for arts in KNOWLEDGE_ARTICLES.values() for a in arts]
+        keywords = [kw.lower() for kw in q.split() if len(kw) >= 2]
+        if not keywords:
+            return []
+        # Score articles by how many keywords match title or summary
+        scored = []
+        for article in all_articles:
+            text = (article["title"] + " " + article["summary"]).lower()
+            score = sum(1 for kw in keywords if kw in text)
+            if score > 0:
+                scored.append((score, article))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [a for _, a in scored[:4]]
+    elif category and category in KNOWLEDGE_ARTICLES:
         return KNOWLEDGE_ARTICLES[category]
-    # Return all articles if no category specified
-    all_articles = []
-    for articles in KNOWLEDGE_ARTICLES.values():
-        all_articles.extend(articles)
-    return all_articles
+    else:
+        return [a for arts in KNOWLEDGE_ARTICLES.values() for a in arts]
 
 if __name__ == "__main__":
     import uvicorn
